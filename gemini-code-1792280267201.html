@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double-Entry Tetris - Accounting Arcade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --debit-color: #3b82f6;
+            --credit-color: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 2px solid #334155;
+            max-width: 95vw;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 220px;
+        }
+
+        .title-box {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: var(--accent);
+            text-shadow: 2px 2px #000;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .stats-box {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        /* Balance Sheet Wobble Meter */
+        .meter-container {
+            width: 100%;
+            height: 16px;
+            background: #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--danger), var(--accent), #22c55e, var(--accent), var(--danger));
+            transition: width 0.3s ease;
+        }
+
+        .meter-pointer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #fff;
+            box-shadow: 0 0 8px #fff;
+            transform: translateX(-50%);
+            transition: left 0.2s ease;
+        }
+
+        /* Main Game Canvas & Board */
+        .board-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .column-headers {
+            display: flex;
+            width: 320px;
+            margin-bottom: 8px;
+        }
+
+        .col-header {
+            flex: 1;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .col-header.debit {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--debit-color);
+            border: 1px solid var(--debit-color);
+            margin-right: 4px;
+        }
+
+        .col-header.credit {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--credit-color);
+            border: 1px solid var(--credit-color);
+            margin-left: 4px;
+        }
+
+        #game-canvas {
+            background: #090d16;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* HUD Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .overlay h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 12px 24px;
+            background: var(--debit-color);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1d4ed8;
+            transition: all 0.1s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #1d4ed8;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1d4ed8;
+        }
+
+        .controls-hint {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .key {
+            background: #334155;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Wobble Animation for Game Area */
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .wobbling {
+            animation: wobble 0.3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="game-container">
+        <!-- Left Panel: Info & Stats -->
+        <div class="side-panel">
+            <div>
+                <div class="title-box">DOUBLE-ENTRY TETRIS</div>
+                <div class="stats-box">
+                    <div class="stat-item">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Lines Cleared</span>
+                        <span class="stat-value" id="lines">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Multiplier</span>
+                        <span class="stat-value" id="streak">1x</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Ledger Balance</span>
+                        <div class="meter-container">
+                            <div class="meter-pointer" id="meter-pointer" style="left: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-hint">
+                <p><span class="key">←</span> <span class="key">→</span> Move</p>
+                <p><span class="key">↓</span> Soft Drop</p>
+                <p><span class="key">Space</span> Hard Drop</p>
+            </div>
+        </div>
+
+        <!-- Center: Game Board -->
+        <div class="board-wrapper">
+            <div class="column-headers">
+                <div class="col-header debit">DEBIT</div>
+                <div class="col-header credit">CREDIT</div>
+            </div>
+            
+            <canvas id="game-canvas" width="320" height="500"></canvas>
+
+            <!-- Game Start / Game Over Overlay -->
+            <div class="overlay" id="overlay">
+                <h2 id="overlay-title">READY TO BALANCE?</h2>
+                <button class="btn" id="start-btn" onclick="startGame()">PLAY NOW</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const scoreEl = document.getElementById('score');
+        const linesEl = document.getElementById('lines');
+        const streakEl = document.getElementById('streak');
+        const meterPointer = document.getElementById('meter-pointer');
+        const gameContainer = document.getElementById('game-container');
+
+        // Game Constants
+        const COLS = 4; // 2 cols for Debit, 2 cols for Credit
+        const ROWS = 10;
+        const BLOCK_WIDTH = canvas.width / COLS;
+        const BLOCK_HEIGHT = canvas.height / ROWS;
+
+        // Transaction Pool
+        const TRANSACTIONS = [
+            { text: "Paid Rent $500", type: "DEBIT", category: "Expense" },
+            { text: "Earned Revenue $1200", type: "CREDIT", category: "Revenue" },
+            { text: "Cash Inflow $800", type: "DEBIT", category: "Asset" },
+            { text: "Took Out Loan $2000", type: "CREDIT", category: "Liability" },
+            { text: "Bought Equipment $400", type: "DEBIT", category: "Asset" },
+            { text: "Paid Utility Bill $150", type: "DEBIT", category: "Expense" },
+            { text: "Owner Investment $5000", type: "CREDIT", category: "Equity" },
+            { text: "Client Retainer $900", type: "CREDIT", category: "Revenue" }
+        ];
+
+        // State variables
+        let grid = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+        let activeBlock = null;
+        let score = 0;
+        let linesCleared = 0;
+        let streak = 1;
+        let wobble = 0; // Negative = Debit heavy, Positive = Credit heavy
+        let gameLoop = null;
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+        let isGameOver = false;
+
+        class Block {
+            constructor(tx) {
+                this.text = tx.text;
+                this.correctType = tx.type; // "DEBIT" or "CREDIT"
+                this.x = Math.floor(Math.random() * 2) + 1; // Start in middle
+                this.y = 0;
+                this.color = tx.type === "DEBIT" ? "#3b82f6" : "#10b981";
+            }
+
+            // Debit columns are 0, 1; Credit columns are 2, 3
+            getCurrentSide() {
+                return this.x < 2 ? "DEBIT" : "CREDIT";
+            }
+
+            isCorrectlyPlaced() {
+                return this.getCurrentSide() === this.correctType;
+            }
+        }
+
+        function spawnBlock() {
+            const randomTx = TRANSACTIONS[Math.floor(Math.random() * TRANSACTIONS.length)];
+            activeBlock = new Block(randomTx);
+
+            if (checkCollision(activeBlock.x, activeBlock.y)) {
+                endGame();
+            }
+        }
+
+        function checkCollision(x, y) {
+            if (x < 0 || x >= COLS || y >= ROWS) return true;
+            if (y >= 0 && grid[y][x] !== null) return true;
+            return false;
+        }
+
+        function moveLeft() {
+            if (activeBlock && !checkCollision(activeBlock.x - 1, activeBlock.y)) {
+                activeBlock.x--;
+            }
+        }
+
+        function moveRight() {
+            if (activeBlock && !checkCollision(activeBlock.x + 1, activeBlock.y)) {
+                activeBlock.x++;
+            }
+        }
+
+        function dropBlock() {
+            if (!activeBlock) return;
+
+            if (!checkCollision(activeBlock.x, activeBlock.y + 1)) {
+                activeBlock.y++;
+            } else {
+                lockBlock();
+            }
+            dropCounter = 0;
+        }
+
+        function hardDrop() {
+            if (!activeBlock) return;
+            while (!checkCollision(activeBlock.x, activeBlock.y + 1)) {
+                activeBlock.y++;
+            }
+            lockBlock();
+        }
+
+        function lockBlock() {
+            grid[activeBlock.y][activeBlock.x] = activeBlock;
+
+            // Evaluate placement correctness
+            if (activeBlock.isCorrectlyPlaced()) {
+                score += 100 * streak;
+                streak++;
+                adjustWobble(activeBlock.correctType === "DEBIT" ? -10 : 10);
+            } else {
+                score = Math.max(0, score - 50);
+                streak = 1;
+                // Double penalty on balance sheet wobble for wrong placement
+                adjustWobble(activeBlock.getCurrentSide() === "DEBIT" ? -25 : 25);
+            }
+
+            updateStats();
+            clearLines();
+            spawnBlock();
+        }
+
+        function adjustWobble(amount) {
+            wobble += amount;
+            // Bound wobble between -50 and 50
+            wobble = Math.max(-50, Math.min(50, wobble));
+
+            // Visual balance meter pointer update (0% to 100%)
+            const percent = 50 + wobble;
+            meterPointer.style.left = `${percent}%`;
+
+            // Apply physical CSS wobble if balance is heavily off
+            if (Math.abs(wobble) > 25) {
+                gameContainer.classList.add('wobbling');
+            } else {
+                gameContainer.classList.remove('wobbling');
+            }
+
+            if (Math.abs(wobble) >= 50) {
+                endGame("UNBALANCED LEDGER!");
+            }
+        }
+
+        function clearLines() {
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (grid[r].every(cell => cell !== null)) {
+                    grid.splice(r, 1);
+                    grid.unshift(Array(COLS).fill(null));
+                    linesCleared++;
+                    score += 500;
+                    // Clearing a line helps restore ledger balance
+                    wobble = Math.sign(wobble) * Math.max(0, Math.abs(wobble) - 20);
+                    adjustWobble(0); 
+                    r++; // Check same row index again after shift
+                }
+            }
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Divider Line between Debit & Credit
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+
+            // Draw Grid Blocks
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r][c]) {
+                        drawBlock(c, r, grid[r][c]);
+                    }
+                }
+            }
+
+            // Draw Active Falling Block
+            if (activeBlock) {
+                drawBlock(activeBlock.x, activeBlock.y, activeBlock);
+            }
+        }
+
+        function drawBlock(x, y, block) {
+            const px = x * BLOCK_WIDTH;
+            const py = y * BLOCK_HEIGHT;
+
+            // Block Background
+            ctx.fillStyle = block.color;
+            ctx.fillRect(px + 2, py + 2, BLOCK_WIDTH - 4, BLOCK_HEIGHT - 4);
+
+            // Block Border Accent
+            ctx.strokeStyle = block.isCorrectlyPlaced() ? '#ffffff' : '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(px + 2, py + 2, BLOCK_WIDTH - 4, BLOCK_HEIGHT - 4);
+
+            // Text Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Wrap block text nicely
+            const words = block.text.split(' ');
+            if (words.length > 2) {
+                ctx.fillText(words.slice(0, 2).join(' '), px + BLOCK_WIDTH/2, py + BLOCK_HEIGHT/2 - 6);
+                ctx.fillText(words.slice(2).join(' '), px + BLOCK_WIDTH/2, py + BLOCK_HEIGHT/2 + 6);
+            } else {
+                ctx.fillText(block.text, px + BLOCK_WIDTH/2, py + BLOCK_HEIGHT/2);
+            }
+        }
+
+        function updateStats() {
+            scoreEl.textContent = score;
+            linesEl.textContent = linesCleared;
+            streakEl.textContent = `${streak}x`;
+        }
+
+        function gameLoopFn(time = 0) {
+            if (isGameOver) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+
+            if (dropCounter > dropInterval) {
+                dropBlock();
+            }
+
+            draw();
+            requestAnimationFrame(gameLoopFn);
+        }
+
+        function startGame() {
+            grid = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+            score = 0;
+            linesCleared = 0;
+            streak = 1;
+            wobble = 0;
+            isGameOver = false;
+
+            adjustWobble(0);
+            updateStats();
+            overlay.style.display = 'none';
+            
+            spawnBlock();
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoopFn);
+        }
+
+        function endGame(reason = "GAME OVER") {
+            isGameOver = true;
+            overlayTitle.textContent = reason;
+            overlay.style.display = 'flex';
+            gameContainer.classList.remove('wobbling');
+        }
+
+        // Keyboard Event Handlers
+        document.addEventListener('keydown', e => {
+            if (isGameOver) return;
+
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'ArrowDown') dropBlock();
+            if (e.code === 'Space') {
+                e.preventDefault();
+                hardDrop();
+            }
+        });
+    </script>
+</body>
+</html>
