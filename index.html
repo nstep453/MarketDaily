@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Market Daily</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--fg:#1b1f1d;--mut:#6b726e;--bd:#e3dfd3;--ac:#14633f;--acf:#fff;--ok:#d9f2e3;--okb:#2e9e62;--bad:#fbe0dc;--badb:#d4574a;--hi:#fff6d6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101412;--card:#1a201d;--fg:#ecefec;--mut:#9aa39e;--bd:#2c3530;--ac:#4cc38a;--acf:#06150e;--ok:#14382a;--okb:#4cc38a;--bad:#3d1f1b;--badb:#ef7b6e;--hi:#3a3418}}
+:root[data-theme="dark"]{--bg:#101412;--card:#1a201d;--fg:#ecefec;--mut:#9aa39e;--bd:#2c3530;--ac:#4cc38a;--acf:#06150e;--ok:#14382a;--okb:#4cc38a;--bad:#3d1f1b;--badb:#ef7b6e;--hi:#3a3418}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+h1{font:700 30px/1.1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.5px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sub{color:var(--mut);font-size:14px;margin:4px 0 0}
+.pill{background:var(--card);border:1px solid var(--bd);border-radius:99px;padding:4px 12px;font-size:14px;white-space:nowrap}
+.tabs{display:flex;gap:6px;margin:16px 0}
+.tabs button,.chips button{flex:1;padding:9px;border:1px solid var(--bd);background:transparent;color:var(--mut);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button.on,.chips button.on{background:var(--ac);color:var(--acf);border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin-bottom:14px}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--ac);margin-bottom:6px}
+.q{font-size:18px;margin:0 0 14px;line-height:1.45}
+.opt{display:block;width:100%;text-align:left;padding:13px 14px;margin-bottom:8px;border:1.5px solid var(--bd);background:transparent;color:var(--fg);border-radius:12px;font:inherit;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--ac)}
+.opt.g{background:var(--ok);border-color:var(--okb)}.opt.b{background:var(--bad);border-color:var(--badb)}
+.opt:disabled{cursor:default}
+.dots{display:flex;gap:6px;margin-bottom:12px}
+.dots span{flex:1;height:6px;border-radius:3px;background:var(--bd)}
+.dots .g{background:var(--okb)}.dots .b{background:var(--badb)}.dots .c{background:var(--mut)}
+.fb{border-radius:12px;padding:12px 14px;margin:6px 0 12px}
+.fb.g{background:var(--ok)}.fb.b{background:var(--bad)}.fb p{margin:6px 0 0;font-size:15px}
+.pri{width:100%;padding:13px;border:0;border-radius:12px;background:var(--ac);color:var(--acf);font:inherit;font-weight:700;cursor:pointer}
+.c{text-align:center}
+.big{font:700 56px/1 Georgia,serif}.big span{font-size:20px;color:var(--mut)}
+.grid{font-size:30px;letter-spacing:4px;margin:10px 0 14px}
+.mut{color:var(--mut);font-size:14px}
+input{width:100%;box-sizing:border-box;padding:11px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--fg);font:inherit;margin:6px 0}
+.chips{display:flex;gap:6px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border-bottom:1px solid var(--bd)}
+.row.me{background:var(--hi)}
+.row .rk{width:26px;font-weight:700;color:var(--mut)}.row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.row .sc{font-weight:700}
+.note{font-size:14px;color:var(--mut);background:var(--bg);border:1px dashed var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+</style></head>
+<body><main>
+<div class="top"><div><h1>Market Daily</h1><p class="sub" id="sub"></p></div><div class="pill" id="st"></div></div>
+<div class="tabs"><button id="t1" class="on">Play</button><button id="t2">Leaderboard</button></div>
+<div id="main"></div>
+</main>
+<script>
+const Q=[
+{c:"MARCH 2000",q:"The Nasdaq Composite hits a record above 5,000 as dot-com fever peaks, then crashes about 78%. How long until it closed above that peak again?",o:["About 15 years","About 3 years","About 8 years"],a:0,e:"It didn’t reclaim the March 2000 high until April 2015. Buying at a hyped peak can cost you a decade or more, even in an index that eventually wins."},
+{c:"MARCH 2009",q:"After Lehman’s collapse, the S&P 500 bottoms 57% below its 2007 high on March 9, 2009. Roughly how long until it climbed back to that old high?",o:["About 4 years","About 1 year","About 10 years"],a:0,e:"The S&P 500 regained its 2007 peak in March 2013, about four years after the low. Investors who sold near the bottom locked in losses and missed the rebound."},
+{c:"MARCH 2020",q:"COVID panic drops the S&P 500 about 34% in just 23 trading days, bottoming on March 23. One year later, where is it?",o:["Up about 30%","Up about 75%","Up about 10%"],a:1,e:"From about 2,237 on March 23, 2020 to about 3,910 a year later is roughly +75%. One of the fastest crashes was followed by one of the fastest recoveries."},
+{c:"THE FEE TRAP",q:"You invest $10,000 for 30 years and the market returns 7% a year. Fund A is an S&P 500 index fund charging 0.03%. Fund B is an actively managed fund charging 1%. How much more do you end up with in Fund A?",o:["About $2,000","About $18,000","About $60,000"],a:1,e:"Fund A grows to roughly $75,000 and Fund B to roughly $57,000. A fee that looks tiny compounds against you every single year."},
+{c:"AGE 22",q:"You invest $200 a month from age 22 to 65, earning 7% a year on average. You put in about $103,000 of your own money. What is it worth at 65?",o:["About $200,000","About $650,000","About $400,000"],a:1,e:"Roughly $650,000. Most of it is growth, not deposits, and your earliest dollars do the most work. Starting at 32 instead would leave you with less than half as much."},
+{c:"JUNE 2022",q:"U.S. inflation hits about 9%, a 40-year high. Your $10,000 sits in a savings account paying 0.5%. About how much buying power do you have after a year?",o:["About $9,200","About $9,950","About $10,500"],a:0,e:"Your balance grows to $10,050, but prices rose about 9%, so it buys what roughly $9,200 bought a year earlier. Cash isn’t risk-free when inflation is high."},
+{c:"MARCH 2020",q:"On March 16, 2020 the S&P 500 had its worst day since 1987, down about 12%. On March 24, just six trading days later, it had a day of about…",o:["+2%","+9%","+15%"],a:1,e:"It jumped about 9.4%, one of its best days ever. The best days often land right beside the worst, which is why timing the market is so hard."},
+{c:"PROS VS. THE INDEX",q:"Over 15-year periods, about what share of professionally managed U.S. large-cap stock funds beat the S&P 500?",o:["About 10%","About half","About 30%"],a:0,e:"Roughly 9 in 10 active large-cap funds lagged the S&P 500 over 15 years in S&P’s SPIVA reports. High fees and the difficulty of repeatedly picking winners are big reasons."},
+{c:"CREDIT CARD",q:"You carry a $3,000 balance on a card with 24% APR, compounding monthly, and make no payments for a year. About how much interest piles up?",o:["About $360","About $800","About $1,440"],a:1,e:"Monthly compounding at 2% turns a 24% APR into about 26.8% a year, so roughly $805. Card debt is compounding in reverse."},
+{c:"MAY 1997",q:"Amazon goes public at $18 a share. Adjusted for later splits, $1,000 invested at the IPO and held through 2024 would be worth about…",o:["About $50,000","About $500,000","About $2,500,000"],a:2,e:"Roughly $2.5 million, yet the stock also fell over 90% from 1999 to 2001. Few investors would have held on, and survivorship bias hides the dot-com companies that never came back."},
+{c:"2022",q:"Stocks tumble about 18% in 2022. Many investors expect bonds to cushion the fall. How did the broad U.S. bond market do?",o:["Down about 13%","Up about 2%","Roughly flat"],a:0,e:"Fast Fed rate hikes pushed the broad U.S. bond index down about 13%, its worst year in decades. Bond prices fall when interest rates rise."},
+{c:"YOUR FIRST JOB",q:"You earn $50,000. Your employer matches 50% of your 401(k) contributions, up to 6% of pay. You contribute 6%. How much free money do you get each year?",o:["$300","$1,500","$3,000"],a:1,e:"You put in $3,000 and your employer adds $1,500, an instant 50% return before any investing. Skipping a match leaves part of your pay on the table."},
+{c:"NOV 2021",q:"Bitcoin peaks near $69,000. By December 2022 it trades around $16,000. How far did it fall?",o:["About 77%","About 30%","About 50%"],a:0,e:"A 77% drop needs a gain of roughly 330% just to get back to even. Volatile assets can erase years of gains, so position size matters."},
+{c:"READING THE RATIOS",q:"A software company trades at a P/E of 20 and a price-to-sales ratio of 5. Roughly what is its net profit margin?",o:["About 4%","About 25%","About 100%"],a:1,e:"Both ratios share the same price, so net margin = (P/S) ÷ (P/E) = 5 ÷ 20 = 25%. Sanity check: a P/E of 20 with a P/S of 40 would imply a 200% margin, which is impossible, so one of the numbers must be wrong."},
+{c:"2000",q:"At the dot-com peak, Cisco traded at over 100 times earnings. If its earnings had stayed flat but its P/E shrank to 25, what happens to the stock price?",o:["It falls about 25%","It falls about 75%","It stays flat"],a:1,e:"Price = earnings × P/E, so a P/E dropping from 100 to 25 cuts the price by 75% with no change in profits. Cisco’s stock fell close to 90% from its 2000 peak by 2002, as multiples collapsed and growth cooled."},
+{c:"GROWTH VS. VALUE",q:"Stock A has a P/E of 30 with earnings growing 30% a year. Stock B has a P/E of 15 with earnings growing 5% a year. Which looks cheaper on a PEG basis (P/E ÷ growth rate)?",o:["They’re equal","Stock B (PEG 3.0)","Stock A (PEG 1.0)"],a:2,e:"A’s PEG is 30 ÷ 30 = 1.0 and B’s is 15 ÷ 5 = 3.0. A low P/E isn’t automatically cheap, since you also pay for growth. The catch: growth forecasts are guesses."},
+{c:"JUNE 2022",q:"Amazon split its stock 20-for-1, taking the price from about $2,400 to about $120. What did the split itself do to the value of your investment?",o:["It fell about 95%","Nothing: 20× the shares at 1/20 the price","It rose 20×"],a:1,e:"A split cuts the same pie into more slices. Share price alone says nothing about cheap or expensive, so compare market cap and valuation ratios instead."},
+{c:"YIELD TRAP",q:"A stock pays $2 a year in dividends and trades at $50. After bad news the price halves to $25 and the dividend hasn’t been cut yet. What is the yield now, and what might it signal?",o:["4%, nothing changed","8%, the market may expect a dividend cut","2%, yield falls with price"],a:1,e:"Yield = dividend ÷ price, so it jumps to 8% when the price halves. A suddenly huge yield often means investors expect the payout to be cut, so high yield can be a warning rather than a bargain."},
+{c:"TECHNICAL ANALYSIS",q:"In March 2020 the S&P 500 flashed a ‘death cross’ (its 50-day average fell below its 200-day), which many chart watchers read as bearish. Over the following year, the index…",o:["Fell another 30%","Went sideways","Rallied strongly"],a:2,e:"The signal arrived around the March 23 low, just before a roughly 75% rebound. Moving averages are lagging indicators: they describe what already happened, so they’re unreliable as stand-alone predictions."},
+{c:"TECHNICAL ANALYSIS",q:"A stock’s 14-day RSI (relative strength index) hits 82 after a six-week run-up. Technical analysts would call it…",o:["Oversold","Overbought","Neutral"],a:1,e:"RSI above 70 is conventionally ‘overbought’ and below 30 ‘oversold’. But strong trends can stay overbought for months, so treat it as a warning light, not a sell button."},
+{c:"EARNINGS QUALITY",q:"A company reports $500M of net income, but its operating cash flow is negative $200M and its unpaid customer invoices keep piling up. What is the red flag?",o:["Profits aren’t turning into real cash","Strong profits, so cash flow doesn’t matter","The dividend is about to rise"],a:0,e:"Accounting profit can include sales you haven’t collected on yet. Free cash flow is harder to flatter, so serious analysts always compare earnings with cash."},
+{c:"BALANCE SHEET",q:"A company earns $100M in operating profit (EBIT) and pays $80M a year in interest on its debt. What is its interest coverage ratio, and what does it say?",o:["12.5×: very safe","0.8×: bankrupt tomorrow","1.25×: a thin cushion"],a:2,e:"Coverage = EBIT ÷ interest = 1.25×. One bad year could leave it unable to pay interest from profits. Many analysts want to see 3× or more."},
+{c:"EARLY 2009",q:"Many big banks traded below book value (P/B under 1) during the financial crisis. What did that often signal?",o:["Investors expected record dividends","Investors doubted the assets were worth what the books said","The banks had no debt"],a:1,e:"A P/B under 1 can mean a bargain or a value trap. Markets suspected hidden losses on loans and securities that hadn’t been written down yet."},
+{c:"MARKET CAP",q:"Apple became the first U.S. company worth $1 trillion in August 2018. How long did it take to hit $2 trillion?",o:["About 6 months","About 5 years","About 2 years"],a:2,e:"It reached $2 trillion in August 2020 and $3 trillion in January 2022. Market cap = share price × shares outstanding. It measures size, not whether the stock is a good deal."},
+{c:"MAY 2010",q:"In the ‘Flash Crash,’ many stop-loss orders became market orders and sold at awful prices. What does a limit order guarantee?",o:["The order always fills","Never worse than your price, but it may not fill","You get the day’s best price"],a:1,e:"A limit order sets the worst price you’ll accept, but it may never execute. A market order fills right away at whatever price is available. During the Flash Crash, some stocks briefly traded for pennies."},
+{c:"EARNINGS SEASON",q:"A company reports solid profits, yet its stock drops 8% the next morning. What is the most common reason?",o:["The numbers were fake","Markets are just random","Its outlook fell short of what was already priced in"],a:2,e:"Prices move on results versus expectations, and on the outlook. Meta fell about 26% in one day in February 2022 after reporting its first-ever drop in daily users."},
+{c:"FUNDAMENTALS",q:"A company earns $200M with 50M shares outstanding, and the stock trades at $60. What is its P/E?",o:["12","15","30"],a:1,e:"EPS = 200 ÷ 50 = $4, so P/E = 60 ÷ 4 = 15. You pay $15 for every $1 of annual earnings."},
+{c:"FUNDAMENTALS",q:"A stock trades at a P/E of 25. What is its earnings yield?",o:["25%","2.5%","4%"],a:2,e:"Earnings yield is the inverse of P/E: 1 ÷ 25 = 4%. Comparing it with bond yields helps judge whether stocks are pricey."},
+{c:"BUYBACKS",q:"A company earns a flat $100M and buys back 10% of its shares. What happens to EPS?",o:["Falls 10%","No change","Rises about 11%"],a:2,e:"Same profit over 10% fewer shares: 1 ÷ 0.9 ≈ 1.11. EPS jumps about 11% with no real business growth."},
+{c:"PROFITABILITY",q:"Net income is $30M and shareholder equity is $200M. What is the return on equity (ROE)?",o:["6.7%","15%","30%"],a:1,e:"ROE = 30 ÷ 200 = 15%. It shows how much profit management generates from owners’ capital."},
+{c:"PROFITABILITY",q:"Why can a very high ROE be misleading?",o:["It only counts dividends","Heavy debt or buybacks shrink equity and inflate it","It never matters"],a:1,e:"ROE = net income ÷ equity. Shrinking equity with debt or buybacks boosts ROE without a better business, so always check leverage alongside it."},
+{c:"BALANCE SHEET",q:"Current assets are $300M and current liabilities are $200M. What is the current ratio?",o:["0.67","1.5","3.0"],a:1,e:"300 ÷ 200 = 1.5, so short-term bills are covered 1.5 times. A ratio under 1 can signal liquidity stress."},
+{c:"BALANCE SHEET",q:"A company has $400M of debt and $200M of equity. What is its debt-to-equity ratio?",o:["0.5","2.0","6.0"],a:1,e:"400 ÷ 200 = 2.0. High leverage amplifies gains in good times and losses in bad ones."},
+{c:"MARGINS",q:"Revenue is $1,000M, cost of goods $600M, operating expenses $250M, and interest plus taxes $50M. What are the gross, operating and net margins?",o:["40%, 15%, 10%","60%, 25%, 5%","40%, 25%, 10%"],a:0,e:"Gross = 400 ÷ 1,000 = 40%. Operating = (400 − 250) ÷ 1,000 = 15%. Net = 100 ÷ 1,000 = 10%."},
+{c:"CASH FLOW",q:"A company generates $120M of operating cash flow and spends $90M on capital expenditures. What is its free cash flow?",o:["$210M","$30M","$120M"],a:1,e:"FCF = operating cash flow − capex = $30M. It’s the cash left for dividends, buybacks, debt paydown or growth."},
+{c:"VALUATION",q:"A company has a $10B market cap, $3B of debt and $1B of cash. What is its enterprise value?",o:["$14B","$12B","$6B"],a:1,e:"EV = market cap + debt − cash = $12B. It’s roughly a takeover price tag, which is why it’s used to compare companies with different debt loads."},
+{c:"VALUATION",q:"A company’s enterprise value is $12B and its EBITDA is $1.5B. What is EV/EBITDA?",o:["18×","8×","0.125×"],a:1,e:"12 ÷ 1.5 = 8×. Lower multiples can signal cheapness, but compare within the same industry."},
+{c:"VALUATION",q:"A stock trades at $30 and its book value is $10 per share. What is the price-to-book ratio?",o:["0.33","3","10"],a:1,e:"30 ÷ 10 = 3. Book value is accounting net worth. P/B works best for banks and asset-heavy firms and poorly for asset-light ones."},
+{c:"DIVIDENDS",q:"A company earns $4 per share and pays a $3.60 dividend. What is its payout ratio, and what does it imply?",o:["40%, very safe","90%, little cushion if profits dip","9%, tiny payout"],a:1,e:"3.60 ÷ 4 = 90%. With almost all earnings paid out, a modest profit dip could force a dividend cut."},
+{c:"DCF",q:"You’ll receive $100 in one year and your required return is 8%. What is it worth today?",o:["$108","$92.59","$80"],a:1,e:"PV = 100 ÷ 1.08 = $92.59. Discounted cash flow models value a stock as the present value of its future cash."},
+{c:"RATES AND STOCKS",q:"Raising the discount rate in a DCF model hits which stocks hardest?",o:["Growth stocks whose cash arrives far in the future","Stocks paying big dividends today","All stocks equally"],a:0,e:"Distant cash flows shrink the most when discounted at a higher rate. When the Fed raised rates in 2022, the Nasdaq Composite fell about 33%."},
+{c:"GROWTH MATH",q:"Earnings grow 9% a year. Using the Rule of 72, about how long until they double?",o:["About 8 years","About 13 years","About 4 years"],a:0,e:"72 ÷ 9 = 8 years. It’s a quick mental estimate of compounding."},
+{c:"GROWTH MATH",q:"Revenue is $100M and grows 20% a year. About what is it after five years?",o:["$200M","$249M","$300M"],a:1,e:"1.2^5 ≈ 2.49, so about $249M. Compounding is why sustained growth is so hard to maintain and so valuable."},
+{c:"RULE OF 40",q:"A software firm grows revenue 35% with a 10% free cash flow margin. Under the ‘Rule of 40’ (growth + margin should be at least 40)…",o:["It passes with 45","It fails with 25","It fails with 10"],a:0,e:"35 + 10 = 45, above 40. Investors use the rule to balance growth against profitability."},
+{c:"VALUE INVESTING",q:"You estimate a stock’s intrinsic value at $100 and want a 30% margin of safety, as Benjamin Graham advised. What is the most you’d pay?",o:["$130","$30","$70"],a:2,e:"100 × (1 − 0.30) = $70. A margin of safety protects you when your estimate is too optimistic."},
+{c:"MOATS",q:"Which is the best example of an economic ‘moat’?",o:["A hot product launched last week","High switching costs that keep customers from leaving","Being the biggest by revenue only"],a:1,e:"Moats protect profits from competitors: switching costs, network effects, cost advantages, brands and patents."},
+{c:"CYCLICALS",q:"A carmaker’s P/E looks very low when its earnings are at a cyclical peak. How should you read that?",o:["A guaranteed bargain","Cautiously, because peak earnings can precede a downturn","P/E ignores price"],a:1,e:"For cyclical companies, low P/Es at peak profits can be traps, while high P/Es at depressed earnings can mark opportunity."},
+{c:"DILUTION",q:"A company issues 20% more shares while earnings stay the same. What happens to EPS?",o:["Falls about 17%","Falls 20%","No change"],a:0,e:"1 ÷ 1.2 ≈ 0.833, a 16.7% drop. Equity raises and heavy stock-based pay dilute existing owners."},
+{c:"RISK",q:"A stock has a beta of 1.5 and the market falls 10%. What move would you roughly expect?",o:["Down about 15%","Down about 10%","Down about 6.7%"],a:0,e:"1.5 × −10% ≈ −15%. Beta measures sensitivity to market moves, and it’s only a rough estimate."},
+{c:"RISK",q:"A stock averages 8% a year with a standard deviation of 15%. Roughly 68% of years should land between…",o:["−7% and 23%","−22% and 38%","0% and 16%"],a:0,e:"One standard deviation either side: 8 ± 15 gives −7% to 23%. Real markets have fatter tails than this bell curve suggests."},
+{c:"CHARTS",q:"A stock has bounced off $50 three times, then closes at $47 on heavy volume. Technicians call this…",o:["A breakout above resistance","A breakdown below support","A golden cross"],a:1,e:"Repeated bounces create support. A decisive close below it on heavy volume signals sellers have taken control."},
+{c:"CHARTS",q:"Which breakout do technical analysts usually trust more?",o:["One on high volume","One on low volume","Volume doesn’t matter"],a:0,e:"High volume suggests broad conviction behind the move, while low-volume breakouts fail more often."},
+{c:"MOVING AVERAGES",q:"The last five closes are $10, $12, $11, $13 and $14. What is the 5-day simple moving average?",o:["$11","$12","$13"],a:1,e:"(10 + 12 + 11 + 13 + 14) ÷ 5 = $12. Moving averages smooth noise but lag behind price."},
+{c:"MOVING AVERAGES",q:"Which reacts faster to recent prices?",o:["Simple moving average","Exponential moving average","Neither"],a:1,e:"An EMA weights recent prices more, so it turns sooner, but it also produces more false signals."},
+{c:"MOMENTUM",q:"The MACD line crosses above its signal line. Traders usually read this as…",o:["Fading momentum","A dividend increase","Strengthening bullish momentum"],a:2,e:"MACD compares two EMAs. A bullish crossover hints at rising momentum, though like all lagging indicators it can whipsaw in choppy markets."},
+{c:"VOLATILITY",q:"Price closes above the upper Bollinger Band. What does that mean?",o:["Price is statistically stretched: a strong trend or overextension","A guaranteed reversal","A mandatory sell signal"],a:0,e:"Bands sit two standard deviations from a moving average. Closing outside them is unusual, but strong trends can ‘ride the band’ for weeks."},
+{c:"PATTERNS",q:"A head-and-shoulders top forms after a long uptrend. What does it suggest?",o:["The uptrend may be reversing","The uptrend will continue","Earnings are coming"],a:0,e:"Three peaks with the middle highest, then a break of the ‘neckline’, are read as a bearish reversal pattern, though confirmation matters."},
+{c:"PATTERNS",q:"A stock makes two similar lows with a rally between them (a ‘W’ shape). What is this, and how is it read?",o:["A double bottom, a possible bullish reversal","A double top, bearish","A gap, neutral"],a:0,e:"A double bottom shows sellers failing twice at the same level. It’s considered confirmed when price breaks above the middle peak."},
+{c:"MOMENTUM",q:"A stock’s 14-day RSI drops to 22. Technicians would call it…",o:["Overbought","Oversold","Neutral"],a:1,e:"RSI below 30 is conventionally oversold. In strong downtrends it can stay depressed for a long time, so it’s not a buy signal on its own."},
+{c:"FIBONACCI",q:"A stock rallies from $100 to $200. Where is the 38.2% Fibonacci retracement level?",o:["$138","$162","$150"],a:1,e:"200 − 0.382 × 100 ≈ $161.80. These levels work partly because many traders watch them, not because of any law of nature."},
+{c:"CANDLESTICKS",q:"A candle has nearly equal open and close prices, forming a ‘doji’. What does it signal?",o:["Indecision between buyers and sellers","Strong buying","An earnings beat"],a:0,e:"A doji shows a tug-of-war that ended near where it began, often watched after a long trend as a possible pause."},
+{c:"TRENDS",q:"Under Dow Theory, which pattern defines an uptrend?",o:["Lower highs and lower lows","Higher highs and higher lows","Flat highs and lows"],a:1,e:"An uptrend keeps making higher peaks and higher pullback lows. It’s considered intact until a higher low fails."},
+{c:"RISK MANAGEMENT",q:"You risk 1% of a $10,000 account on a trade, with a stop $2 below your entry. How many shares can you buy?",o:["50","100","500"],a:0,e:"Risk $100 ÷ $2 per share = 50 shares. Sizing by stop distance caps the loss from any single trade."},
+{c:"RISK MANAGEMENT",q:"You buy at $50 with a stop at $47 and a target of $59. What is the reward-to-risk ratio?",o:["1:1","3:1","6:1"],a:1,e:"Risk is $3 and reward is $9, so 3:1. Favorable ratios let you be wrong often and still come out ahead."},
+{c:"RISK MANAGEMENT",q:"At a 3:1 reward-to-risk ratio, what win rate breaks even (ignoring costs)?",o:["25%","50%","75%"],a:0,e:"At 25% wins you earn 0.25 × 3 = 0.75 and lose 0.75 × 1 = 0.75. Break-even depends on the ratio, not just the win rate."},
+{c:"LOSSES",q:"A stock falls 50%. What gain does it need to get back to even?",o:["+50%","+100%","+150%"],a:1,e:"$100 falls to $50, and it takes a double to get back to $100. Losses are asymmetric, so avoiding big drops matters."},
+{c:"LEVERAGE",q:"You buy $10,000 of stock using $5,000 of your own money and $5,000 borrowed. The stock falls 20%. What do you lose on your own money?",o:["20%","40%","10%"],a:1,e:"A 20% drop costs $2,000 on a $5,000 stake, which is 40%. Margin doubles gains and losses, and can force you to sell at the bottom."},
+{c:"TRADING COSTS",q:"The bid is $9.98 and the ask is $10.02. What is the spread?",o:["$0.04","$0.02","$10"],a:0,e:"Ask − bid = $0.04, a hidden cost: you buy at the ask and sell at the bid. Spreads are wider for thinly traded stocks."},
+{c:"VALUATION",q:"What does a forward P/E use for earnings?",o:["The last 12 months","Estimated earnings for the next 12 months","The last 5 years"],a:1,e:"Forward P/E relies on analyst estimates, which can be wrong, so it’s only as reliable as the forecasts behind it."},
+{c:"JAN 2021",q:"GameStop’s surge was fueled partly by a ‘short squeeze’. What is one?",o:["A dividend cut","A stock split","Short sellers forced to buy shares back as the price rises, pushing it higher"],a:2,e:"Short sellers borrow and sell shares betting on a drop. When the price rises, losses force them to buy back, which can send the price even higher."}
+];
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,"0");
+const key=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const dt=new Date(),today=key(dt);
+const num=Math.floor((Date.UTC(dt.getFullYear(),dt.getMonth(),dt.getDate())-Date.UTC(2026,9,17))/864e5)+1;
+const L=Q.length,T=[0,1,2,3,4].map(i=>Q[(((num-1)*5+i)%L+L)%L]);
+const KEY="marketdaily1";
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+let S=load();S.days=S.days||{};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const total=()=>Object.values(S.days).reduce((a,d)=>a+(d.s||0),0);
+function streak(){let c=0;const d=new Date(dt);if(!S.days[key(d)])d.setDate(d.getDate()-1);while(S.days[key(d)]){c++;d.setDate(d.getDate()-1)}return c}
+let r=0,marks=[],score=0,t0=0,view="play",lbMode="today",rows=[],dbState="loading",db=null,uid=null,canW=null,pushT;
+$("#sub").textContent="#"+num+" · "+dt.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})+" · 5 real-world investing questions";
+function stats(){$("#st").textContent="🔥 "+streak()+" day"+(streak()===1?"":"s")}
+function tab(v){view=v;$("#t1").className=v==="play"?"on":"";$("#t2").className=v==="board"?"on":"";v==="play"?play():board()}
+$("#t1").onclick=()=>tab("play");$("#t2").onclick=()=>tab("board");
+function play(){
+  if(S.days[today])return results();
+  const q=T[r];t0=Date.now();
+  $("#main").innerHTML='<div class="dots">'+[0,1,2,3,4].map(i=>'<span class="'+(i<marks.length?(marks[i]?"g":"b"):i===r?"c":"")+'"></span>').join("")+'</div><div class="card"><div class="tag">'+q.c+'</div><p class="q">'+q.q+'</p><div id="opts">'+q.o.map((o,i)=>'<button class="opt" data-i="'+i+'">'+o+'</button>').join("")+'</div><div id="fb"></div></div>';
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
+}
+function pick(i){
+  const q=T[r],ok=i===q.a,secs=(Date.now()-t0)/1000,bonus=ok?Math.max(0,50-Math.floor(secs*2.5)):0;
+  const pts=ok?100+bonus:0;score+=pts;marks.push(ok?1:0);
+  document.querySelectorAll(".opt").forEach((b,j)=>{b.disabled=true;if(j===q.a)b.classList.add("g");else if(j===i)b.classList.add("b")});
+  $("#fb").innerHTML='<div class="fb '+(ok?"g":"b")+'"><b>'+(ok?"Correct! +"+pts+(bonus?" (incl. "+bonus+" speed bonus)":""):"Not quite. +0")+'</b><p>'+q.e+'</p></div><button class="pri" id="nx">'+(r<4?"Next round":"See results")+'</button>';
+  $("#nx").onclick=()=>{r++;if(r>=5)finish();else play()};
+}
+function finish(){S.days[today]={s:score,m:marks.join("")};save();stats();push();results()}
+function results(){
+  const d=S.days[today],grid=[...d.m].map(c=>c==="1"?"🟩":"🟥").join("");
+  $("#main").innerHTML='<div class="card c"><div class="tag">TODAY’S SCORE</div><div class="big">'+d.s+'<span>/750</span></div><div class="grid">'+grid+'</div><button class="pri" id="sh">Share result</button><div id="shx"></div><p class="mut" id="cd"></p></div><div class="card"><b>Leaderboard name</b><input id="nm" maxlength="16" placeholder="Pick a nickname" autocomplete="off"><div class="mut">Please don’t use your real name.</div></div><div id="lb"></div>';
+  $("#nm").value=S.name||"";
+  $("#nm").oninput=e=>{S.name=e.target.value.trim().slice(0,16);save();clearTimeout(pushT);pushT=setTimeout(push,900)};
+  $("#sh").onclick=()=>share(d,grid);drawLB();tick();
+}
+function share(d,grid){
+  const t="Market Daily #"+num+"\n"+grid+"\n"+d.s+"/750 · 🔥"+streak();
+  const fail=()=>{$("#shx").innerHTML='<textarea rows="4" style="width:100%;margin-top:8px;box-sizing:border-box;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px">'+t+'</textarea>'};
+  try{navigator.clipboard.writeText(t).then(()=>{$("#sh").textContent="Copied! Paste it in the group chat"},fail)}catch(e){fail()}
+}
+function tick(){const el=$("#cd");if(!el)return;const n=new Date(),m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)-n,s=Math.floor(m/1e3);el.textContent="Next puzzle in "+pad(Math.floor(s/3600))+":"+pad(Math.floor(s/60)%60)+":"+pad(s%60);setTimeout(tick,1000)}
+function board(){$("#main").innerHTML='<div id="lb"></div>';drawLB()}
+function drawLB(){
+  const el=$("#lb");if(!el)return;el.innerHTML="";
+  const card=document.createElement("div");card.className="card";
+  const h=document.createElement("b");h.textContent="Leaderboard";card.appendChild(h);
+  const chips=document.createElement("div");chips.className="chips";chips.style.marginTop="10px";
+  [["today","Today"],["all","All-time"]].forEach(([k,l])=>{const b=document.createElement("button");b.textContent=l;if(lbMode===k)b.className="on";b.onclick=()=>{lbMode=k;drawLB()};chips.appendChild(b)});
+  card.appendChild(chips);
+  if(dbState!=="live"){const n=document.createElement("div");n.className="note";n.textContent=dbState==="loading"?"Loading scores…":"The shared leaderboard isn’t available in this view, so your scores are saved on this device only.";card.appendChild(n)}
+  let list=rows.slice();
+  if(lbMode==="today")list=list.filter(x=>x.lastDate===today).sort((a,b)=>b.lastScore-a.lastScore);
+  list.slice(0,25).forEach((x,i)=>{
+    const row=document.createElement("div");row.className="row"+(x.id===uid?" me":"");
+    const a=document.createElement("span");a.className="rk";a.textContent=i+1;
+    const b=document.createElement("span");b.className="nm";b.textContent=x.name+(x.id===uid?" (you)":"");
+    const c=document.createElement("span");c.className="sc";c.textContent=lbMode==="today"?x.lastScore:x.total;
+    row.append(a,b,c);card.appendChild(row);
+  });
+  if(!list.length&&dbState==="live"){const n=document.createElement("div");n.className="mut";n.textContent="No scores yet. Be the first on the board!";card.appendChild(n)}
+  const me=document.createElement("div");me.className="mut";me.style.marginTop="12px";
+  me.textContent="You: "+(S.days[today]?S.days[today].s+" today · ":"not played today · ")+total()+" all-time · "+Object.keys(S.days).length+" days played";
+  card.appendChild(me);el.appendChild(card);
+}
+async function push(){
+  if(!db||!uid||canW===false||!S.days[today])return;
+  try{await db.doc("scores/"+uid).set({name:(S.name||"Anon").slice(0,16),total:total(),streak:streak(),lastDate:today,lastScore:S.days[today].s})}catch(e){}
+}
+(async()=>{
+  try{
+    if(!window.claude){dbState="off";return}
+    const u=await claude.use("user");
+    if(u){try{uid=await u.id()}catch(e){}try{canW=await u.can("data.write")}catch(e){}}
+    db=await claude.use("db");
+    if(!db){dbState="off";drawLB();return}
+    db.collection("scores").orderBy("total","desc").limit(100).onSnapshot(s=>{
+      rows=s.docs.map(x=>{const v=x.data()||{};return{id:x.id,name:String(v.name||"Anon").slice(0,16),total:+v.total||0,lastDate:String(v.lastDate||""),lastScore:+v.lastScore||0}});
+      dbState="live";drawLB();
+    },()=>{dbState="off";drawLB()});
+    push();
+  }catch(e){dbState="off";drawLB()}
+})();
+stats();play();
+</script></body></html>
